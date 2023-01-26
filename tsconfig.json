@@ -22,8 +22,9 @@
 
         "module": "CommonJS",
         "types": ["node"],
-        "outDir": "./dist"
+        "outDir": "./dist",
+        "esModuleInterop": true
     },
     "compileOnSave": true,
-    "include": ["src/**/*"]
+    "include": ["src/**/*", "@types/**/*"]
 }

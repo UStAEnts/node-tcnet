@@ -6,6 +6,7 @@ import {
     LayerIndex,
     TCNetRequestPacket,
     TCNetDataPacketType,
+    TrackInfo,
 } from "node-tcnet";
 import dump from "buffer-hexdump";
 
@@ -45,10 +46,32 @@ client.connect().then(async () => {
         }
     };
 
+    const printLayer = (index: number, layer: PromiseSettledResult<TrackInfo>) => {
+        if (layer.status === "fulfilled") {
+            if (layer.value.trackTitle !== "") {
+                console.log(`Layer ${index}: ${layer.value.trackTitle} by ${layer.value.trackArtist}`);
+            } else {
+                console.log(`Layer ${index}: No track loaded`);
+            }
+        } else {
+            console.log(`Layer ${index}: Failed to fetch (${layer.reason})`);
+        }
+    };
+
+    setInterval(async () => {
+        const [l2, l3] = await Promise.allSettled([
+            client.trackInfo(LayerIndex.Layer2),
+            client.trackInfo(LayerIndex.Layer3),
+        ]);
+
+        printLayer(2, l2);
+        printLayer(3, l3);
+    }, 20000);
+
     const nop = (...args: any[]) => undefined;
 
-    nop(await tryRequest(TCNetDataPacketType.MetricsData, 'MetricsData'));
-    nop(await tryRequest(TCNetDataPacketType.MetaData, 'MetaData'));
+    nop(await tryRequest(TCNetDataPacketType.MetricsData, "MetricsData"));
+    nop(await tryRequest(TCNetDataPacketType.MetaData, "MetaData"));
     nop(await tryRequest(TCNetDataPacketType.BeatGridData, "BeatGridData"));
     nop(await tryRequest(TCNetDataPacketType.CUEData, "CUEData"));
     nop(await tryRequest(TCNetDataPacketType.SmallWaveFormData, "SmallWaveFormData"));

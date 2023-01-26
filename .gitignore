@@ -7,9 +7,6 @@ node_modules/
 # generated mapping files
 *.js.map
 
-# generated type definitions
-*.d.ts
-
 # Editor configuration
 .idea/
 .vscode/*

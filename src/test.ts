@@ -9,6 +9,7 @@ import {
     TrackInfo,
 } from "node-tcnet";
 import dump from "buffer-hexdump";
+import { LayerMetrics } from "./pioneer";
 
 // Init new TCNet configuration
 const config = new TCNetConfiguration();
@@ -46,10 +47,11 @@ client.connect().then(async () => {
         }
     };
 
-    const printLayer = (index: number, layer: PromiseSettledResult<TrackInfo>) => {
+    const printLayer = (index: number, layer: PromiseSettledResult<TrackInfo>, metrics: PromiseSettledResult<LayerMetrics>) => {
         if (layer.status === "fulfilled") {
             if (layer.value.trackTitle !== "") {
-                console.log(`Layer ${index}: ${layer.value.trackTitle} by ${layer.value.trackArtist}`);
+                const bpm = metrics.status === 'fulfilled' ? ` @ ${metrics.value.bpm}` : '';
+                console.log(`Layer ${index}: ${layer.value.trackTitle} by ${layer.value.trackArtist}${bpm}`);
             } else {
                 console.log(`Layer ${index}: No track loaded`);
             }
@@ -59,13 +61,15 @@ client.connect().then(async () => {
     };
 
     setInterval(async () => {
-        const [l2, l3] = await Promise.allSettled([
+        const [l2, l3, lm2, lm3] = await Promise.allSettled([
             client.trackInfo(LayerIndex.Layer2),
             client.trackInfo(LayerIndex.Layer3),
+            client.layerMetrics(LayerIndex.Layer2),
+            client.layerMetrics(LayerIndex.Layer3),
         ]);
 
-        printLayer(2, l2);
-        printLayer(3, l3);
+        printLayer(2, l2, lm2);
+        printLayer(3, l3, lm3);
     }, 20000);
 
     const nop = (...args: any[]) => undefined;
